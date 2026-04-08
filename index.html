@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>57th St · Bags Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:Arial,sans-serif;background:#f5f3ee;color:#1a1a1a;font-size:14px;}
+
+/* Setup */
+#setup{min-height:100vh;background:#2c2c2a;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;text-align:center;}
+#setup h1{color:white;font-size:22px;margin-bottom:6px;}
+#setup p{color:#aaa;font-size:13px;margin-bottom:24px;}
+.scard{background:white;border-radius:12px;padding:24px;width:100%;max-width:400px;text-align:left;}
+.scard h2{font-size:16px;margin-bottom:6px;}
+.scard p{font-size:12px;color:#888;margin-bottom:16px;}
+.flbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#888;margin:12px 0 5px;}
+.finp{width:100%;padding:11px 12px;border:1px solid #e0ddd5;border-radius:6px;font-size:15px;font-family:Arial;}
+.finp:focus{outline:none;border-color:#ba7517;}
+.sbtn{width:100%;margin-top:18px;padding:14px;background:#2c2c2a;color:white;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;}
+
+/* App */
+#app{display:none;}
+.header{background:#2c2c2a;color:white;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;}
+.hl h1{font-size:15px;font-weight:700;}
+.hl p{font-size:10px;color:#aaa;margin-top:1px;}
+.hr{display:flex;align-items:center;gap:8px;}
+.dbadge{background:#444;border-radius:6px;padding:5px 10px;text-align:center;}
+.dbadge .dy{font-size:15px;font-weight:700;line-height:1;}
+.dbadge .dt{font-size:9px;color:#bbb;}
+.sdot{width:8px;height:8px;border-radius:50%;background:#666;flex-shrink:0;}
+.sdot.live{background:#3b6d11;}
+
+/* Tabs */
+.tabnav{display:flex;background:#3d3d3a;}
+.tabbtn{flex:1;padding:10px;text-align:center;font-size:12px;font-weight:700;color:#888;border:none;background:none;cursor:pointer;letter-spacing:0.3px;border-bottom:2px solid transparent;}
+.tabbtn.active{color:white;border-bottom-color:#ba7517;}
+
+/* Pace banner */
+.pbanner{padding:9px 16px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.pg{background:#eaf3de;color:#3b6d11;}.pa{background:#faeeda;color:#ba7517;}.pr{background:#fcebeb;color:#a32d2d;}
+.pd{font-weight:400;font-size:11px;}
+.ddots{display:flex;gap:3px;}
+.ddot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:white;}
+.ddn{background:#3b6d11;}.ddt{background:#ba7517;}.ddf{background:#ddd;color:#999;}
+
+/* Views */
+#tracker-view,#report-view{display:none;}
+.wrap{padding:14px 16px;max-width:600px;margin:0 auto;}
+
+/* Score grid */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.sbox{background:white;border-radius:8px;padding:10px 12px;border:1px solid #e0ddd5;}
+.sbox.cl{background:#f7f5f0;}
+.slbl{font-size:9px;text-transform:uppercase;letter-spacing:0.4px;color:#888;margin-bottom:4px;}
+.sval{font-size:26px;font-weight:700;line-height:1;}
+.stgt{font-size:10px;color:#888;margin-top:3px;}
+.sbar{height:4px;background:#e8e5dc;border-radius:3px;margin-top:6px;overflow:hidden;}
+.sbf{height:100%;border-radius:3px;transition:width .4s;}
+
+.green{color:#3b6d11;}.gf{background:#3b6d11;}
+.amber{color:#ba7517;}.af{background:#ba7517;}
+.red{color:#a32d2d;}.rf{background:#a32d2d;}
+.gray{color:#888;}
+
+/* Alerts */
+.alert{border-radius:8px;padding:10px 13px;margin-bottom:8px;font-size:12px;line-height:1.6;}
+.alr{background:#fcebeb;border-left:3px solid #a32d2d;color:#7a1f1f;}
+.ala{background:#faeeda;border-left:3px solid #ba7517;color:#7a4d0a;}
+.alg{background:#eaf3de;border-left:3px solid #3b6d11;color:#2a4f0a;}
+
+/* HC row */
+.hcrow{background:white;border-radius:8px;border:1px solid #e0ddd5;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.hclbl{font-size:11px;color:#888;margin-bottom:3px;}
+.hcctrl{display:flex;align-items:center;gap:10px;}
+.hcb{width:32px;height:32px;border-radius:50%;border:none;background:#f5f3ee;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.hcn{font-size:22px;font-weight:700;color:#185fa5;min-width:28px;text-align:center;}
+.hcmeta{font-size:11px;color:#888;text-align:right;line-height:1.8;}
+.hcmeta strong{color:#1a1a1a;}
+
+/* Section */
+.slabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#555;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.savebtn{width:100%;padding:14px;background:#3b6d11;color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:16px;}
+.savebtn:active{background:#2d5409;}
+.clrbtn{font-size:10px;color:#a32d2d;background:none;border:none;cursor:pointer;font-weight:700;}
+
+/* CA cards */
+.cacard{background:white;border-radius:10px;border:1px solid #e0ddd5;margin-bottom:10px;overflow:hidden;}
+.cacard.out{opacity:0.5;}
+.cahdr{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid #f0ede5;}
+.caname{font-weight:700;font-size:14px;outline:none;border:1px dashed transparent;border-radius:3px;padding:2px 4px;}
+.caname:focus{border-color:#ba7517;background:#faeeda;}
+.outbtn{font-size:10px;font-weight:700;border-radius:10px;padding:4px 12px;cursor:pointer;border:none;white-space:nowrap;}
+.outbtn.on{background:#eaf3de;color:#3b6d11;}
+.outbtn.off{background:#fcebeb;color:#a32d2d;}
+.cafields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:#f0ede5;}
+.cafield{background:white;padding:8px 6px;text-align:center;}
+.cafield.cfc{background:#f7f5f0;}
+.caflbl{font-size:8px;text-transform:uppercase;letter-spacing:0.3px;color:#aaa;margin-bottom:4px;line-height:1.4;min-height:22px;display:flex;align-items:center;justify-content:center;}
+.cafield input{width:100%;text-align:center;border:1px dashed #ddd;border-radius:5px;padding:7px 2px;font-size:20px;font-weight:700;color:#185fa5;background:#f7fbff;font-family:Arial;-moz-appearance:textfield;}
+.cafield input::-webkit-outer-spin-button,.cafield input::-webkit-inner-spin-button{-webkit-appearance:none;}
+.cafield input:focus{outline:none;border-color:#ba7517;background:#faeeda;}
+.cacalc{font-size:20px;font-weight:700;padding:7px 0;}
+.castatus{padding:7px 14px;font-size:11px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #f0ede5;}
+
+/* Pills */
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap;}
+.pill-g{background:#eaf3de;color:#3b6d11;}
+.pill-a{background:#faeeda;color:#ba7517;}
+.pill-r{background:#fcebeb;color:#a32d2d;}
+.pill-x{background:#f0ede5;color:#888;}
+
+/* Daily strip */
+.dstrip{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:16px;}
+.dbox{background:white;border-radius:7px;padding:7px 3px;text-align:center;border:1px solid #e0ddd5;}
+.dbd{font-size:8px;text-transform:uppercase;color:#888;}
+.dbt{font-size:9px;color:#bbb;margin:1px 0;}
+.dbv{font-size:17px;font-weight:700;margin:2px 0;}
+.dbi{font-size:9px;font-weight:700;}
+.dpg{background:#eaf3de;border-color:#3b6d11;}
+.dpr{background:#fcebeb;border-color:#a32d2d;}
+.dpt{background:#faeeda;border:2px solid #ba7517;}
+.dpf{background:#f7f5f0;}
+
+/* History */
+.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;}
+.hcard{background:white;border-radius:8px;border:1px solid #e0ddd5;padding:10px 12px;}
+.hday{font-size:10px;color:#888;margin-bottom:3px;}
+.hval{font-size:20px;font-weight:700;}
+.hsub{font-size:11px;font-weight:700;margin-top:2px;}
+.hmeta{font-size:10px;color:#888;margin-top:4px;}
+.au{color:#3b6d11;}.ad{color:#a32d2d;}.afl{color:#888;}
+.nohist{font-size:12px;color:#aaa;font-style:italic;padding:8px 0 16px;}
+
+/* Report page */
+.rwrap{padding:16px;max-width:600px;margin:0 auto;}
+.rhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.rtitle{font-size:16px;font-weight:700;}
+.expbtn{background:#2c2c2a;color:white;border:none;border-radius:6px;padding:8px 14px;font-size:11px;font-weight:700;cursor:pointer;}
+.rcard{background:white;border-radius:10px;border:1px solid #e0ddd5;padding:16px;margin-bottom:12px;}
+.rctitle{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#888;margin-bottom:12px;}
+.wsumgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.wsbox{background:#f7f5f0;border-radius:7px;padding:10px;text-align:center;}
+.wsval{font-size:22px;font-weight:700;}
+.wslbl{font-size:9px;color:#888;text-transform:uppercase;margin-top:2px;}
+.kpigrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.kpibox{text-align:center;}
+.kpival{font-size:20px;font-weight:700;}
+.kpilbl{font-size:9px;color:#888;text-transform:uppercase;margin-top:2px;line-height:1.4;}
+.ttable{width:100%;border-collapse:collapse;font-size:12px;}
+.ttable th{background:#2c2c2a;color:white;padding:7px 8px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:0.4px;}
+.ttable td{padding:8px;border-bottom:1px solid #f0ede5;vertical-align:middle;}
+.ttable tr:last-child td{border-bottom:none;}
+.ttable tr.hit td{background:#eaf3de;}
+.ttable tr.miss td{background:#fcebeb;}
+.ttable .tot td{background:#f0ede5;font-weight:700;border-top:2px solid #ccc;}
+.cagrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.carc{background:#f7f5f0;border-radius:8px;padding:10px 12px;}
+.carname{font-size:12px;font-weight:700;margin-bottom:6px;}
+.carstat{font-size:11px;color:#888;display:flex;justify-content:space-between;padding:2px 0;}
+.carstat strong{color:#1a1a1a;}
+.nodata{font-size:12px;color:#aaa;font-style:italic;text-align:center;padding:30px 10px;}
+
+/* Loading */
+#loading{position:fixed;inset:0;background:#2c2c2a;display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:12px;}
+#loading p{color:#aaa;font-size:13px;}
+.spin{width:32px;height:32px;border:3px solid #555;border-top-color:#ba7517;border-radius:50%;animation:sp .8s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+
+.stepper{display:flex;align-items:center;justify-content:center;gap:0;}
+.stepper button{width:36px;height:36px;border:none;background:#f0ede5;font-size:20px;font-weight:700;cursor:pointer;color:#2c2c2a;flex-shrink:0;border-radius:4px;}
+.stepper button:active{background:#e0ddd5;}
+.stepper button:disabled{opacity:0.3;cursor:default;}
+.stepval{min-width:38px;text-align:center;font-size:20px;font-weight:700;color:#185fa5;display:inline-block;}
+.stepval.green{color:#3b6d11;}
+.stepval.amber{color:#ba7517;}
+@media print{
+  #loading,#app .header,.tabnav,.savebtn,.clrbtn,.expbtn,.hcrow,#tracker-view,#alerts{display:none!important;}
+  #report-view{display:block!important;}
+  .rcard{break-inside:avoid;}
+}
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spin"></div><p id="lmsg">Connecting…</p></div>
+
+<div id="setup" style="display:none">
+  <h1>Miu Miu · 57th Street</h1>
+  <p>Bags Daily Tracker</p>
+  <div class="scard">
+    <h2>What is your name?</h2>
+    <p>You only need to do this once.</p>
+    <div class="flbl">Your name</div>
+    <input class="finp" id="uname" type="text" placeholder="e.g. Maria" maxlength="20" autofocus>
+    <button class="sbtn" onclick="doSetup()">Start →</button>
+  </div>
+</div>
+
+<div id="app">
+  <div class="header">
+    <div class="hl"><h1>Miu Miu · 57th St · Bags</h1><p id="ulabel">—</p></div>
+    <div class="hr">
+      <div id="sdot" class="sdot"></div>
+      <div class="dbadge"><div class="dy" id="hday">—</div><div class="dt" id="hdate">—</div></div>
+    </div>
+  </div>
+
+  <div class="tabnav">
+    <button class="tabbtn active" id="tb-tracker" onclick="switchTab('tracker')">📋 Daily Tracker</button>
+    <button class="tabbtn" id="tb-report" onclick="switchTab('report')">📊 Report</button>
+  </div>
+
+  <!-- TRACKER VIEW -->
+  <div id="tracker-view">
+    <div class="pbanner pa" id="pbanner">
+      <div class="ddots" id="ddots"></div>
+      <span id="pmsg">—</span>
+      <span class="pd" id="pdet"></span>
+    </div>
+    <div class="wrap">
+      <div class="sgrid">
+        <div class="sbox"><div class="slbl">Bags Sold Today</div><div class="sval" id="ss">—</div><div class="stgt">target <strong id="sst">—</strong></div><div class="sbar"><div class="sbf" id="ssb" style="width:0"></div></div></div>
+        <div class="sbox"><div class="slbl">Bags Presented</div><div class="sval" id="sp">—</div><div class="stgt">target <strong id="spt">—</strong></div><div class="sbar"><div class="sbf" id="spb" style="width:0"></div></div></div>
+        <div class="sbox cl"><div class="slbl">Conversion Rate</div><div class="sval" id="sc">—</div><div class="stgt">target ≥ 15%</div><div class="sbar"><div class="sbf" id="scb" style="width:0"></div></div></div>
+        <div class="sbox"><div class="slbl">Private Appointments</div><div class="sval" id="spa">—</div><div class="stgt">target <strong id="spat">—</strong></div><div class="sbar"><div class="sbf" id="spab" style="width:0"></div></div></div>
+        <div class="sbox cl"><div class="slbl">Bags per Appointment</div><div class="sval" id="spc">—</div><div class="stgt">target ≥ 1.5</div><div class="sbar"><div class="sbf" id="spcb" style="width:0"></div></div></div>
+        <div class="sbox"><div class="slbl">CRM Outreach</div><div class="sval" id="scr">—</div><div class="stgt">target <strong id="scrt">—</strong></div><div class="sbar"><div class="sbf" id="scrb" style="width:0"></div></div></div>
+      </div>
+      <div id="alerts"></div>
+      <div class="hcrow">
+        <div>
+          <div class="hclbl">Team on floor today</div>
+          <div class="hcctrl" style="margin-top:4px">
+            <button class="hcb" onclick="changeHC(-1)">−</button>
+            <div class="hcn" id="hcn">10</div>
+            <button class="hcb" onclick="changeHC(+1)">+</button>
+          </div>
+        </div>
+        <div class="hcmeta"><strong id="hca">10</strong> active<br><strong id="hcpc">—</strong> bags/CA<br><strong id="hcpp">—</strong> shown/CA</div>
+      </div>
+      <div class="slabel">Sales Associates — today</div>
+      <div id="calist"></div>
+      <button class="savebtn" onclick="saveDay()">💾 Save today to history</button>
+      <div class="slabel"><span>This week — daily tracker</span><button class="clrbtn" onclick="clearWeek()">Clear week</button></div>
+      <div class="dstrip" id="dstrip"></div>
+      <div class="slabel">Daily history</div>
+      <div class="nohist" id="nohist">Save each day to see the trend here.</div>
+      <div class="hgrid" id="hgrid"></div>
+    </div>
+  </div>
+
+  <!-- REPORT VIEW -->
+  <div id="report-view">
+    <div class="rwrap">
+      <div class="rhdr">
+        <div class="rtitle">Weekly Performance Report</div>
+        <button class="expbtn" onclick="window.print()">⬇ Export PDF</button>
+      </div>
+
+      <div class="rcard">
+        <div class="rctitle">Week Summary</div>
+        <div id="rc-summary"><div class="nodata">No data yet — save days from the tracker.</div></div>
+      </div>
+
+      <div class="rcard">
+        <div class="rctitle">Day by Day — Bags Sold vs Target</div>
+        <div id="rc-trend"><div class="nodata">—</div></div>
+      </div>
+
+      <div class="rcard">
+        <div class="rctitle">Key Performance Indicators</div>
+        <div id="rc-kpis"><div class="nodata">—</div></div>
+      </div>
+
+      <div class="rcard">
+        <div class="rctitle">Sales Associate Performance</div>
+        <div id="rc-ca"><div class="nodata">CA breakdown builds automatically as days are saved.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+var WTGT=40, CTGT=0.15, MCA=10;
+var DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+var LK='57th_cfg_v2';
+var FB_URL='https://bags-online-board-default-rtdb.firebaseio.com';
+
+var cfg={}, db=null, todayIdx=0, HC=10;
+var absent=Array(MCA).fill(false);
+var caNames=['CA 1','CA 2','CA 3','CA 4','CA 5','CA 6','CA 7','CA 8','CA 9','CA 10'];
+var live={today:{}, history:{}};
+var currentTab='tracker';
+
+try { cfg=JSON.parse(localStorage.getItem(LK)||'{}'); } catch(e) {}
+
+function id(x) { return document.getElementById(x); }
+function hide(x) { var e=id(x); if(e) e.style.display='none'; }
+function show(x,d) { var e=id(x); if(e) e.style.display=d||'block'; }
+
+window.doSetup = function() {
+  var name = id('uname').value.trim();
+  if (!name) { alert('Please enter your name'); return; }
+  cfg = {fbUrl: FB_URL, userName: name};
+  localStorage.setItem(LK, JSON.stringify(cfg));
+  boot();
+};
+
+window.step = function(i, f, delta) {
+  if (!live.today['ca_'+i]) live.today['ca_'+i] = {};
+  var cur = live.today['ca_'+i][f] != null ? +live.today['ca_'+i][f] : 0;
+  var nv = Math.max(0, cur + delta);
+  live.today['ca_'+i][f] = nv;
+  var el = document.getElementById('sv_'+i+'_'+f);
+  if (el) el.textContent = nv;
+  var obj = {}; obj[f] = nv;
+  db.ref('57th/today/ca_'+i).update(obj);
+};
+
+window.changeHC = function(delta) {
+  HC = Math.max(1, Math.min(MCA, HC+delta));
+  db.ref('57th/settings/hc').set(HC);
+};
+
+window.toggleOut = function(i) {
+  absent[i] = !absent[i];
+  db.ref('57th/settings/absent').set(absent);
+};
+
+window.saveName = function(i, el) {
+  caNames[i] = el.textContent.trim() || 'CA '+(i+1);
+  el.textContent = caNames[i];
+  db.ref('57th/settings/names').set(caNames);
+};
+
+window.switchTab = function(tab) {
+  currentTab = tab;
+  if (tab === 'tracker') {
+    show('tracker-view','block'); hide('report-view');
+    id('tb-tracker').classList.add('active');
+    id('tb-report').classList.remove('active');
+  } else {
+    hide('tracker-view'); show('report-view','block');
+    id('tb-report').classList.add('active');
+    id('tb-tracker').classList.remove('active');
+    renderReport();
+  }
+};
+
+window.saveDay = function() {
+  var tgt = calcTgt(), ac = actv();
+  var tS=sumF('sold'), tP=sumF('pres'), tA=sumF('pa'), tPS=sumF('pasold'), tC=sumF('crm');
+  if (tS===0 && tP===0) { alert("Nothing to save — enter today's numbers first."); return; }
+  var conv = tP>0 ? tS/tP : null;
+  var paconv = tA>0 ? tPS/tA : null;
+  db.ref('57th/history/day_'+todayIdx).set({
+    dayIdx:todayIdx, dayLabel:DAYS[todayIdx],
+    sold:tS, pres:tP, pa:tA, pasold:tPS, crm:tC,
+    conv:conv, paconv:paconv, target:tgt,
+    date: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),
+    by: cfg.userName
+  });
+  db.ref('57th/today').set({});
+  alert('✓ '+DAYS[todayIdx]+' saved. Tomorrow\'s target updates automatically.');
+};
+
+window.clearWeek = function() {
+  if (!confirm('Clear all data for this week?')) return;
+  db.ref('57th/history').set({});
+  db.ref('57th/today').set({});
+};
+
+function boot() {
+  if (!cfg.fbUrl) { hide('loading'); show('setup','flex'); return; }
+  try {
+    try { firebase.app('t57').delete(); } catch(e) {}
+    var app = firebase.initializeApp({databaseURL: cfg.fbUrl}, 't57');
+    db = firebase.database(app);
+  } catch(e) { hide('loading'); show('setup','flex'); return; }
+  initDate();
+  var timeout = setTimeout(function() {
+    id('lmsg').textContent = 'Connection timed out. Check internet and try again.';
+    id('lmsg').style.color = '#e88';
+    setTimeout(function() { hide('loading'); show('setup','flex'); }, 2000);
+  }, 8000);
+  db.ref('57th').on('value', function(snap) {
+    clearTimeout(timeout);
+    var d = snap.val() || {};
+    live.today   = d.today   || {};
+    live.history = d.history || {};
+    HC      = (d.settings && d.settings.hc != null) ? d.settings.hc : 10;
+    absent  = (d.settings && d.settings.absent) ? d.settings.absent : Array(MCA).fill(false);
+    caNames = (d.settings && d.settings.names)  ? d.settings.names  : caNames;
+    hide('loading');
+    show('app','block');
+    show('tracker-view','block');
+    window.scrollTo(0,0);
+    id('sdot').className = 'sdot live';
+    id('ulabel').textContent = cfg.userName + ' · live ●';
+    render();
+    if (currentTab === 'report') renderReport();
+  }, function(err) {
+    id('lmsg').textContent = 'Could not connect: ' + (err.message || err.code || 'unknown error');
+    id('lmsg').style.color = '#e88';
+    setTimeout(function() { hide('loading'); show('setup','flex'); }, 3000);
+  });
+}
+
+function initDate() {
+  var t = new Date(), dow = t.getDay();
+  todayIdx = dow===0 ? 6 : dow-1;
+  id('hday').textContent  = DAYS[todayIdx];
+  id('hdate').textContent = t.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+
+function calcTgt() {
+  var sf = 0;
+  Object.values(live.history).forEach(function(h) { if(h.dayIdx < todayIdx) sf += (h.sold||0); });
+  return Math.ceil(Math.max(0, WTGT - sf) / (7 - todayIdx));
+}
+
+function actv() {
+  return Array.from({length:HC}, function(_,i){return i;}).filter(function(i){return !absent[i];}).length;
+}
+
+function sumF(f) {
+  return Array.from({length:HC}, function(_,i){return i;})
+    .filter(function(i){return !absent[i];})
+    .reduce(function(t,i){ var d=live.today['ca_'+i]; return t+(d?+d[f]||0:0); }, 0);
+}
+
+function fP(v) { return (v===null||v===undefined) ? '—' : (v*100).toFixed(0)+'%'; }
+function fX(v) { return (v===null||v===undefined) ? '—' : v.toFixed(2)+'x'; }
+function n0(v) { return Math.round(v); }
+function cl(v) { return Math.ceil(v); }
+function gc(v,t) { return (v===null||v===undefined)?'gray':v>=t?'green':v>=t*0.7?'amber':'red'; }
+function pt(v,t) { return t>0 ? Math.min(v/t*100,100) : 0; }
+function ar(c,p) {
+  if(c===null||c===undefined||p===null||p===undefined) return '';
+  var d=(c-p)/Math.abs(p||1);
+  return d>0.05?'<span class="au">↑</span>':d<-0.05?'<span class="ad">↓</span>':'<span class="afl">→</span>';
+}
+
+function diag(d, sT, pT) {
+  if (!d || (d.sold==null && d.pres==null && d.pa==null)) return {cls:'pill-x', t:'No data yet'};
+  var sold=d.sold||0, pres=d.pres||0, pa=d.pa||0, ps=d.pasold||0, crm=d.crm||0;
+  var cv=pres>0?sold/pres:null, pv=pa>0?ps/pa:null;
+  if (sold>=sT) return {cls:'pill-g', t:'On track ✓'};
+  var ii=[];
+  if (pres<pT*0.5)      ii.push({s:'r', t:'Not showing enough ('+pres+', need '+cl(pT)+')'});
+  else if(pres<pT*0.8)  ii.push({s:'a', t:'Below presentation target'});
+  if (cv!==null&&cv<0.08)       ii.push({s:'r', t:'Very low conversion '+fP(cv)});
+  else if(cv!==null&&cv<CTGT)   ii.push({s:'a', t:'Conv. '+fP(cv)+' below 15%'});
+  if (pa===0&&sold<sT*0.5)      ii.push({s:'r', t:'No appointments booked'});
+  if (pv!==null&&pv<1.0)        ii.push({s:'r', t:'PA not converting ('+fX(pv)+')'});
+  if (crm<1)                    ii.push({s:'a', t:'No outreach today'});
+  if (!ii.length) return {cls:'pill-a', t:cl(sT-sold)+' to go'};
+  ii.sort(function(a,b){return a.s==='r'&&b.s!=='r'?-1:1;});
+  return {cls: ii[0].s==='r'?'pill-r':'pill-a', t: ii[0].t+(ii.length>1?' +'+(ii.length-1):'')};
+}
+
+function setBox(eid, bid, v, t, fmt) {
+  var el=id(eid), bar=id(bid);
+  var h = v!==null && v!==undefined && !isNaN(v);
+  el.textContent = !h?'—':fmt==='pct'?fP(v):fmt==='x'?fX(v):n0(v).toString();
+  el.className = 'sval '+(!h?'gray':v>=t?'green':v>=t*0.7?'amber':'red');
+  var p = h&&t ? pt(v,t) : 0;
+  if (bar) { bar.style.width=p+'%'; bar.className='sbf '+(p>=100?'gf':p>=70?'af':'rf'); }
+}
+
+function render() {
+  var tgt=calcTgt(), ac=actv();
+  var sCA=cl(tgt/ac), pCA=cl(tgt/CTGT/ac);
+  var sP=cl(tgt/CTGT), pT=cl(5*ac/7), cT=4*ac;
+
+  id('hcn').textContent=HC; id('hca').textContent=ac;
+  id('hcpc').textContent=sCA; id('hcpp').textContent=pCA;
+  id('sst').textContent=tgt; id('spt').textContent=sP;
+  id('spat').textContent=pT; id('scrt').textContent=cT+' ('+4+'/CA)';
+
+  id('ddots').innerHTML = DAYS.map(function(d,i){
+    var c=i<todayIdx?'ddn':i===todayIdx?'ddt':'ddf';
+    return '<div class="ddot '+c+'">'+d[0]+'</div>';
+  }).join('');
+
+  var tS=sumF('sold'), tP=sumF('pres'), tA=sumF('pa'), tPS=sumF('pasold'), tC=sumF('crm');
+  var has=Array.from({length:HC},function(_,i){return i;}).some(function(i){
+    return !absent[i] && live.today['ca_'+i] && (live.today['ca_'+i].sold!=null||live.today['ca_'+i].pres!=null);
+  });
+  var cv2=has&&tP>0?tS/tP:null, pv2=has&&tA>0?tPS/tA:null;
+
+  setBox('ss','ssb',has?tS:null,tgt,'int');
+  setBox('sp','spb',has?tP:null,sP,'int');
+  setBox('sc','scb',cv2,CTGT,'pct');
+  setBox('spa','spab',has?tA:null,pT,'int');
+  setBox('spc','spcb',pv2,1.5,'x');
+  setBox('scr','scrb',has?tC:null,cT,'int');
+
+  var bn=id('pbanner');
+  if (!has) {
+    bn.className='pbanner pa';
+    id('pmsg').textContent=DAYS[todayIdx]+' — enter today\'s numbers';
+    id('pdet').textContent='Store target: '+tgt+' bags · '+sP+' shown';
+  } else {
+    var ok=tS>=tgt&&tP>=sP, none=tS<tgt&&tP<sP;
+    bn.className='pbanner '+(ok?'pg':none?'pr':'pa');
+    id('pmsg').textContent=ok?'✓ On track for '+DAYS[todayIdx]:none?'✗ Below target — act now':'⚠ Partially on track';
+    id('pdet').textContent=n0(tS)+'/'+tgt+' bags · '+n0(tP)+'/'+sP+' shown';
+  }
+
+  var als=[];
+  if (has) {
+    var g=tgt-tS;
+    if (g<=0) { als.push({t:'g', m:'<strong>Target hit — '+n0(tS)+' bags.</strong>'}); }
+    else {
+      if (tP<sP*0.5)            als.push({t:'r', m:'<strong>Presentations critical ('+n0(tP)+'/'+sP+').</strong> Every client must see a bag.'});
+      else if(cv2!==null&&cv2<0.08) als.push({t:'r', m:'<strong>Conversion very low ('+fP(cv2)+').</strong>'});
+      else if(cv2!==null&&cv2<CTGT) als.push({t:'a', m:'<strong>Conversion '+fP(cv2)+' below 15%.</strong>'});
+      if (pv2!==null&&pv2<1.0)  als.push({t:'r', m:'<strong>PA conversion low ('+fX(pv2)+').</strong>'});
+      if (tC<1)                  als.push({t:'a', m:'<strong>No outreach sent yet today.</strong>'});
+    }
+    var rc=Array.from({length:HC},function(_,i){return i;})
+      .filter(function(i){ var d=live.today['ca_'+i]; return !absent[i]&&d&&d.sold!=null&&d.sold<sCA*0.7; })
+      .map(function(i){return caNames[i];});
+    if (rc.length) als.push({t:'r', m:'<strong>Below target: '+rc.join(', ')+'.</strong>'});
+  }
+  id('alerts').innerHTML = als.map(function(a){return '<div class="alert al'+a.t+'">'+a.m+'</div>';}).join('');
+
+  // Build CA cards
+  var cl2=id('calist'); cl2.innerHTML='';
+  for (var i=0; i<HC; i++) {
+    var d=live.today['ca_'+i]||{}, io=absent[i];
+    var cv=!io&&d.pres>0?d.sold/d.pres:null;
+    var pv=!io&&d.pa>0?d.pasold/d.pa:null;
+    var dg=io?{cls:'pill-x',t:'OUT / PTO'}:diag(d,sCA,pCA);
+    var sp2=!io&&d.sold!=null?(d.sold>=sCA?'🟢':d.sold>=sCA*0.7?'🟡':'🔴'):'';
+    var pp2=!io&&d.pres!=null?(d.pres>=pCA?'🟢':d.pres>=pCA*0.7?'🟡':'🔴'):'';
+    var vs=d.sold!=null?d.sold:0, vp=d.pres!=null?d.pres:0;
+    var vpa=d.pa!=null?d.pa:0, vps=d.pasold!=null?d.pasold:0, vc=d.crm!=null?d.crm:0;
+    var dis=io?' disabled':'';
+    var card=document.createElement('div');
+    card.className='cacard'+(io?' out':'');
+    card.innerHTML=
+      '<div class="cahdr">'+
+        '<span class="caname" contenteditable="true" onblur="saveName('+i+',this)">'+caNames[i]+'</span>'+
+        '<button class="outbtn '+(io?'off':'on')+'" onclick="toggleOut('+i+')">'+(io?'OUT / PTO':'Present ✓')+'</button>'+
+      '</div>'+
+      '<div class="cafields">'+
+        '<div class="cafield">'+
+          '<div class="caflbl">Bags Sold '+sp2+'<br><span style="color:#ccc;font-size:7px">target '+sCA+'</span></div>'+
+          '<div class="stepper">'+
+            '<button onclick="step('+i+',\'sold\',-1)"'+dis+'>−</button>'+
+            '<span class="stepval" id="sv_'+i+'_sold">'+vs+'</span>'+
+            '<button onclick="step('+i+',\'sold\',1)"'+dis+'>+</button>'+
+          '</div>'+
+        '</div>'+
+        '<div class="cafield">'+
+          '<div class="caflbl">Presented '+pp2+'<br><span style="color:#ccc;font-size:7px">target '+pCA+'</span></div>'+
+          '<div class="stepper">'+
+            '<button onclick="step('+i+',\'pres\',-1)"'+dis+'>−</button>'+
+            '<span class="stepval" id="sv_'+i+'_pres">'+vp+'</span>'+
+            '<button onclick="step('+i+',\'pres\',1)"'+dis+'>+</button>'+
+          '</div>'+
+        '</div>'+
+        '<div class="cafield cfc">'+
+          '<div class="caflbl">Conv. Rate<br><span style="color:#ccc;font-size:7px">target 15%</span></div>'+
+          '<div class="cacalc '+gc(cv,CTGT)+'">'+fP(cv)+'</div>'+
+        '</div>'+
+        '<div class="cafield">'+
+          '<div class="caflbl">Priv. Appts<br><span style="color:#ccc;font-size:7px">5/week</span></div>'+
+          '<div class="stepper">'+
+            '<button onclick="step('+i+',\'pa\',-1)"'+dis+'>−</button>'+
+            '<span class="stepval" id="sv_'+i+'_pa">'+vpa+'</span>'+
+            '<button onclick="step('+i+',\'pa\',1)"'+dis+'>+</button>'+
+          '</div>'+
+        '</div>'+
+        '<div class="cafield">'+
+          '<div class="caflbl">Sold in Appts<br><span style="color:#ccc;font-size:7px">fill after PA</span></div>'+
+          '<div class="stepper">'+
+            '<button onclick="step('+i+',\'pasold\',-1)"'+dis+'>−</button>'+
+            '<span class="stepval" id="sv_'+i+'_pasold">'+vps+'</span>'+
+            '<button onclick="step('+i+',\'pasold\',1)"'+dis+'>+</button>'+
+          '</div>'+
+        '</div>'+
+        '<div class="cafield">'+
+          '<div class="caflbl">CRM Outreach<br><span style="color:#ccc;font-size:7px">target 4</span></div>'+
+          '<div class="stepper">'+
+            '<button onclick="step('+i+',\'crm\',-1)"'+dis+'>−</button>'+
+            '<span class="stepval" id="sv_'+i+'_crm">'+vc+'</span>'+
+            '<button onclick="step('+i+',\'crm\',1)"'+dis+'>+</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="castatus">'+
+        '<span class="pill '+dg.cls+'">'+dg.t+'</span>'+
+        (pv!==null?'<span style="font-size:11px;color:#888">PA: <strong class="'+gc(pv,1.5)+'">'+fX(pv)+'</strong></span>':'')+
+      '</div>';
+    cl2.appendChild(card);
+  }
+
+  renderStrip(tgt);
+  renderHistory();
+}
+
+function renderStrip(todayTgt) {
+  var strip=id('dstrip'); strip.innerHTML=''; var rem=WTGT;
+  DAYS.forEach(function(day,i){
+    var sv2=Object.values(live.history).find(function(h){return h.dayIdx===i;});
+    var dl=7-i, t2=Math.ceil(rem/dl), div=document.createElement('div');
+    if (sv2) {
+      var df=n0(sv2.sold)-sv2.target;
+      div.className='dbox '+(df>=0?'dpg':'dpr');
+      div.innerHTML='<div class="dbd">'+day+'</div><div class="dbt">tgt '+sv2.target+'</div>'+
+        '<div class="dbv '+(df>=0?'green':'red')+'">'+n0(sv2.sold)+'</div>'+
+        '<div class="dbi '+(df>=0?'green':'red')+'">'+(df>=0?'+'+df:df)+'</div>';
+      rem=Math.max(0,rem-sv2.sold);
+    } else if (i===todayIdx) {
+      var cur=sumF('sold');
+      div.className='dbox dpt';
+      div.innerHTML='<div class="dbd">'+day+' ▶</div><div class="dbt">tgt '+(todayTgt||t2)+'</div>'+
+        '<div class="dbv amber">'+(cur>0?n0(cur):'—')+'</div>'+
+        '<div class="dbi amber">'+(cur>0?((todayTgt||t2)-cur>0?n0((todayTgt||t2)-cur)+' left':'✓'):'—')+'</div>';
+    } else {
+      div.className='dbox dpf';
+      div.innerHTML='<div class="dbd">'+day+'</div><div class="dbt">target</div>'+
+        '<div class="dbv gray">'+t2+'</div><div class="dbi" style="color:#ccc">—</div>';
+    }
+    strip.appendChild(div);
+  });
+}
+
+function renderHistory() {
+  var hist=Object.values(live.history).sort(function(a,b){return a.dayIdx-b.dayIdx;});
+  var no=id('nohist'), hg=id('hgrid');
+  if (!hist.length) { no.style.display=''; hg.innerHTML=''; return; }
+  no.style.display='none'; hg.innerHTML='';
+  hist.forEach(function(h,i){
+    var prev=i>0?hist[i-1]:null;
+    var ok=(h.sold||0)>=(h.target||0), df=n0((h.sold||0)-h.target);
+    var c=document.createElement('div'); c.className='hcard';
+    c.innerHTML='<div class="hday">'+h.dayLabel+' · '+(h.date||'')+'</div>'+
+      '<div class="hval '+(ok?'green':'red')+'">'+n0(h.sold||0)+' <span style="font-size:11px;color:#888">/ '+h.target+'</span></div>'+
+      '<div class="hsub '+(ok?'green':'red')+'">'+(ok?'+'+df+' ✓':df+' missed')+' '+ar(h.sold/h.target,prev?prev.sold/prev.target:null)+'</div>'+
+      '<div class="hmeta">Conv: <strong>'+fP(h.conv)+'</strong> '+ar(h.conv,prev?prev.conv:null)+' &nbsp; PA: <strong>'+fX(h.paconv)+'</strong></div>';
+    hg.appendChild(c);
+  });
+}
+
+function renderReport() {
+  var hist=Object.values(live.history).sort(function(a,b){return a.dayIdx-b.dayIdx;});
+  if (!hist.length) {
+    ['rc-summary','rc-trend','rc-kpis','rc-ca'].forEach(function(x){
+      id(x).innerHTML='<div class="nodata">No data saved yet. Save days from the tracker.</div>';
+    });
+    return;
+  }
+  var tS=hist.reduce(function(t,h){return t+(h.sold||0);},0);
+  var tP=hist.reduce(function(t,h){return t+(h.pres||0);},0);
+  var tA=hist.reduce(function(t,h){return t+(h.pa||0);},0);
+  var tPS=hist.reduce(function(t,h){return t+(h.pasold||0);},0);
+  var tC=hist.reduce(function(t,h){return t+(h.crm||0);},0);
+  var tT=hist.reduce(function(t,h){return t+(h.target||0);},0);
+  var dHit=hist.filter(function(h){return (h.sold||0)>=(h.target||0);}).length;
+  var avgCV=tP>0?tS/tP:null, avgPA=tA>0?tPS/tA:null;
+  var pctT=tT>0?tS/tT:null, rem=Math.max(0,WTGT-tS), dLeft=7-hist.length;
+  var hcls=pctT>=1?'green':pctT>=0.7?'amber':'red';
+
+  id('rc-summary').innerHTML=
+    '<div class="wsumgrid">'+
+      '<div class="wsbox"><div class="wsval '+hcls+'">'+n0(tS)+'</div><div class="wslbl">Bags Sold</div></div>'+
+      '<div class="wsbox"><div class="wsval">'+tT+'</div><div class="wslbl">Target (days saved)</div></div>'+
+      '<div class="wsbox"><div class="wsval '+hcls+'">'+fP(pctT)+'</div><div class="wslbl">% of Target</div></div>'+
+      '<div class="wsbox"><div class="wsval">'+dHit+' / '+hist.length+'</div><div class="wslbl">Days Hit</div></div>'+
+    '</div>'+
+    (dLeft>0?
+      '<div style="font-size:12px;color:#888;padding:8px;background:#f7f5f0;border-radius:6px;margin-top:8px">'+rem+' bags needed in '+dLeft+' day'+(dLeft>1?'s':'')+' — <strong>'+Math.ceil(rem/dLeft)+' per day</strong> to hit the '+WTGT+'-unit target.</div>':
+      '<div style="font-size:12px;color:#3b6d11;padding:8px;background:#eaf3de;border-radius:6px;margin-top:8px">Week complete ✓</div>');
+
+  id('rc-trend').innerHTML=
+    '<table class="ttable"><thead><tr><th>Day</th><th>Target</th><th>Sold</th><th>Presented</th><th>Conv.</th><th>Result</th></tr></thead><tbody>'+
+    hist.map(function(h){
+      var ok=(h.sold||0)>=(h.target||0), df=n0((h.sold||0)-h.target);
+      var cv=h.pres>0?h.sold/h.pres:null;
+      return '<tr class="'+(ok?'hit':'miss')+'">'+
+        '<td><strong>'+h.dayLabel+'</strong><br><span style="font-size:9px;color:#888">'+(h.date||'')+'</span></td>'+
+        '<td>'+h.target+'</td>'+
+        '<td><strong class="'+(ok?'green':'red')+'">'+n0(h.sold||0)+'</strong></td>'+
+        '<td>'+n0(h.pres||0)+'</td>'+
+        '<td>'+fP(cv)+'</td>'+
+        '<td class="'+(ok?'green':'red')+'" style="font-weight:700">'+(ok?'+'+df+' ✓':df+' missed')+'</td>'+
+      '</tr>';
+    }).join('')+
+    '<tr class="tot"><td>TOTAL</td><td>'+tT+'</td><td class="'+hcls+'">'+n0(tS)+'</td><td>'+n0(tP)+'</td><td>'+fP(avgCV)+'</td><td class="'+hcls+'">'+fP(pctT)+'</td></tr>'+
+    '</tbody></table>';
+
+  id('rc-kpis').innerHTML=
+    '<div class="kpigrid">'+
+      '<div class="kpibox"><div class="kpival '+gc(avgCV,CTGT)+'">'+fP(avgCV)+'</div><div class="kpilbl">Conversion Rate<br><span style="color:#ccc">target 15%</span></div></div>'+
+      '<div class="kpibox"><div class="kpival '+gc(avgPA,1.5)+'">'+fX(avgPA)+'</div><div class="kpilbl">Bags per Appt<br><span style="color:#ccc">target 1.5x</span></div></div>'+
+      '<div class="kpibox"><div class="kpival">'+n0(tC)+'</div><div class="kpilbl">CRM Outreach<br><span style="color:#ccc">total</span></div></div>'+
+      '<div class="kpibox"><div class="kpival">'+n0(tP)+'</div><div class="kpilbl">Total Presented</div></div>'+
+      '<div class="kpibox"><div class="kpival">'+n0(tA)+'</div><div class="kpilbl">Appointments</div></div>'+
+      '<div class="kpibox"><div class="kpival">'+n0(tPS)+'</div><div class="kpilbl">Sold in Appts</div></div>'+
+    '</div>';
+
+  id('rc-ca').innerHTML='<div style="font-size:12px;color:#888;font-style:italic">CA breakdown builds as days are saved.</div>';
+}
+
+boot();
+</script>
+</body>
+</html>
